@@ -203,7 +203,7 @@ void loop() {
     if (start > future)
     {
       Serial.println("GAME OVER");
-      if (win = true)
+      if (win == true)
       {
         Serial.println("WIN");
         digitalWrite(solve, HIGH);
