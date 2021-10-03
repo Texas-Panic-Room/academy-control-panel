@@ -71,7 +71,7 @@ void loop() {
       key_state = false;
     }
 
-  if (key_state = true)
+  if (key_state == true)
   {
     Serial.println ("BEGIN");
     start = millis();
