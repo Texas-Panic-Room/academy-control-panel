@@ -66,7 +66,7 @@ void loop() {
   Serial.println("...");
   
 
-  if (digitalRead(keypad) = HIGH)
+  if (digitalRead(keypad) == HIGH)
   {
     key_state = true;
   }
