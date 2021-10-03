@@ -198,13 +198,13 @@ void loop() {
       else
       {
         win = false;
-        start = millis();
+        start = future;
       }
       delay(1000);
       
     } // end of while loop
 
-    if (start > future)
+    if (start >= future)
     {
       Serial.println("GAME OVER");
       if (win = true)
