@@ -4,16 +4,18 @@
 const int keypad = 2; //keypad begins program
 const int aux = 3; //status needs to be off
 const int lights = 4; //status needs to be on
-const int lab = 5; //status needs to be off
+const int lab = 8; //status needs to be off
 const int exterior = 6; //status needs to be on
 const int classroom = 7; //status needs to be on
-const int plug1 = 8; //Left plug - status needs to be connected
-const int plug2 = 9; //Middle plug - status needs to be connected
-const int plug3 = 10; //Right plug - status needs to be connected
-const int blue = 11; //press to submit
+const int plug1 = 11; //Left plug - status needs to be connected
+const int plug2 = 12; //Middle plug - status needs to be connected
+const int plug3 = 13; //Right plug - status needs to be connected
+const int blue = 1; //press to submit
 
-const int solve = 12; //sends relay signal to tell pi solved status
-const int fail = 13; // sends signal to second relay to tell pi failure
+const int began = A4; // tells pi to make sound, led on
+const int solve = A3; // sends signal to change LED color and trigger pi to stop timer
+const int fail = 12; //sends relay signal to tell pi it's a failure
+
 
 // using bool to define the state of a given variable instead of flags or counting
 bool key_state = false;
@@ -28,10 +30,6 @@ bool p3_state = false;
 bool blu_state = false;
 bool win = false;
 
-// define time measurements
-long start = millis(); // current time
-long future = start + 600000; // 10 minutes of time
-
 void setup() {
 
   pinMode(keypad, INPUT_PULLUP);
@@ -45,14 +43,17 @@ void setup() {
   pinMode(plug3, INPUT_PULLUP);
   pinMode(blue, INPUT_PULLUP);
 
+  pinMode (began, OUTPUT);
   pinMode (solve, OUTPUT);
   pinMode (fail, OUTPUT);
 
-  digitalWrite(solve, HIGH);
+  digitalWrite(began, LOW);
+  digitalWrite(solve, LOW);
   digitalWrite(fail, LOW);
 
   Serial.begin(9600);
   Serial.println("Academy Control Panel");
+  
 }
 
 // note: when using input pullup HIGH means off/disconnected circuit
@@ -67,18 +68,22 @@ void loop() {
   {
     key_state = true;
   }
-    else
-    {
-      key_state = false;
-    }
+  else
+  {
+    key_state = false;
+  }
 
 
   if (key_state == true)
   {
     Serial.println ("BEGIN");
-    start = millis();
-    
-    while (start < future)
+    digitalWrite(began, HIGH);
+
+    unsigned long start = millis(); // begin counting time
+
+//current time minus start time is how much time passed
+
+    while ((millis()-start) < 600000) // no more than 10 min can go by during puzzle
     {
       // check audio setting status
       if (digitalRead(aux) == HIGH)
@@ -188,39 +193,36 @@ void loop() {
         blu_state = false;
       }
 
-
       if (aux_state && lit_state && ext_state && clsrm_state && p1_state && p2_state && p3_state && blu_state)
         // removed lab state as it was inconsistent
       {
         win = true;
-        start = (future+1);
+        start = start + 600000;
       }
       else
       {
         win = false;
-        start = future;
       }
-      delay(1000);
-      
-    } // end of while loop
-
-    if (start >= future)
+      delay(500);
+    } // end of while loop during the 10 min active
+    
+    if ((millis()-start) >= 600000) // if more than 10 min has passed
     {
       Serial.println("GAME OVER");
-      if (win = true)
+      if (win == true)
       {
         Serial.println("WIN");
-        digitalWrite(solve, HIGH);
+        digitalWrite(began, HIGH); // turn off one led color
+        digitalWrite(solve, LOW); // turn on one led color
       }
       else
       {
         Serial.println("FAIL");
         digitalWrite(fail, HIGH);
+        digitalWrite(began, HIGH); // turn off LED color
       }
       delay(180000);
       key_state = false;
-      start = millis();
-      future = (start+600000);
     }
   } // end of keystate loop
 }
